@@ -1,5 +1,3 @@
-from tkinter import Place
-
 import streamlit as st
 import plotly.express as px
 from Backend import get_data
@@ -13,9 +11,19 @@ options = st.selectbox('Select data to view', ("Temperature", "Sky"))
 
 st.subheader(f"{options} for the next {days} days in {place}")
 
+if place:
 
-d, t = get_data(Place, days, options)
+    filtered_data = get_data(place, days)
 
+    if options == 'Temperature':
+        temperatures = [dict['main']['temp'] for dict in filtered_data]
+        dates = [dict['dt_txt'] for dict in filtered_data]
+        figure = px.line(x=dates, y=temperatures, labels={"x":"Date","y": "Temperature(C)"})
+        st.plotly_chart(figure)
 
-figure = px.line(x=d, y=t, labels={"x":"Date","y": "Temperature(C)"})
-st.plotly_chart(figure)
+    if options == 'Sky':
+        sky_conditions = [dict['weather'][0]['main'] for dict in filtered_data]
+        img = {'Clear': 'img/clear.png', 'Clouds': 'img/clouds.png', 'Rain': 'img/rain.png', 'Snow': 'img/snow.png'}
+
+        img_paths = [img[condition] for condition in sky_conditions]
+        st.image(img_paths, width=115)
